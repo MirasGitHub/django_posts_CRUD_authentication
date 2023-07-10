@@ -22,26 +22,40 @@ def register(request):
     return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
+# class Login(APIView):
+#     def post(self, request):
+#         if request.user.is_authenticated:
+#             return Response(status=status.HTTP_400_BAD_REQUEST)
+#
+#         serializer = UserLoginSerializer(data=request.data)
+#
+#         if not serializer.is_valid():
+#             return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#
+#         username = serializer.validated_data['username']
+#         password = serializer.validated_data['password']
+#
+#         user = authenticate(username=username, passowrd=password)
+#
+#         if user is None:
+#             return Response(data={"error": "Invalid username or password"}, status=status.HTTP_400_BAD_REQUEST)
+#
+#         login(request, user)
+#         return Response(status=status.HTTP_200_OK)
+
 class Login(APIView):
     def post(self, request):
         if request.user.is_authenticated:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+        username = request.data.get('username')
+        password = request.data.get('password')
+        user = authenticate(username=username, password=password)
 
-        serializer = UserLoginSerializer(data=request.data)
+        if user:
+            login(request, user)
+            return Response(UserSerializer(user).data)
 
-        if not serializer.is_valid():
-            return Response(data=serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-        username = serializer.validated_data['username']
-        password = serializer.validated_data['password']
-
-        user = authenticate(username=username, passowrd=password)
-
-        if user is None:
-            return Response(data={"error": "Invalid username or password"}, status=status.HTTP_400_BAD_REQUEST)
-
-        login(request, user)
-        return Response(status=status.HTTP_200_OK)
+        return Response({'error': "Invalid username or password"}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class Logout(APIView):
